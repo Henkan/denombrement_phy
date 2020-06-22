@@ -25,9 +25,10 @@ def main():
             if _sum == energy and subset not in to_keep:
                 to_keep.append(subset)
 
-    print('Les cas possibles sont:')
+    print('Les états macroscopiques possibles sont:')
     # Compute the number of possible states
     most_probable = (0, 0)
+    nb_micro_per_state = []
     for i in range(len(to_keep)):
         # Formulae is n!/product(ni!)
         number_of_states = math.factorial(n)
@@ -35,9 +36,9 @@ def main():
 
         # Count number of each state, e.g. (1,1,2) returns {1:2,2:1}
         count = collections.Counter(k for k in to_keep[i])
-        print('État {0}: {{'.format(i + 1), end="")
-        
-        for j in range(1, energy):
+        print('\tÉtat {0}: {{'.format(i + 1), end="")
+
+        for j in range(1, energy + 1):
             val = 0
             for item in count.items():
                 if item[0] == j:
@@ -45,12 +46,23 @@ def main():
             print('n{0}={1}, '.format(j, val), end='')
             denominator *= math.factorial(val)
         print('...}')
+
         # Apply formula
         number_of_states /= denominator
+        nb_micro_per_state.append(number_of_states)
         if number_of_states > most_probable[1]:
             most_probable = (i, number_of_states)
 
-    print('Avec n={0} états et E={1}, le cas le plus probable est le {2}.'.format(n, energy, most_probable[0] + 1))
+    print("Nombre d'états microscopiques:")
+    counter = 1
+    for nb_states in nb_micro_per_state:
+        print("\t{0} pour l'état macro {1}".format(int(nb_states), counter))
+        counter += 1
+
+    print('Il y a donc un total de {0} états microscopiques'.format(int(sum(nb_micro_per_state))))
+    print("Avec n={0} particules et E={1}, l'état macroscopique le plus probable est le {2}.".format(n, energy,
+                                                                                                     most_probable[
+                                                                                                         0] + 1))
 
 
 if __name__ == '__main__':
