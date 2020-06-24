@@ -5,10 +5,10 @@ import math
 from macro_state import MacroState
 
 
-def main():
-    n = 2  # int(input('Nombre de particules (n): \n > '))
-    energy = 4  # int(input('Énergie totale (E=x*e): \n > '))
-    particle_type = 1  # int(input('Type de particule (1=classique, 2=bosons, 3=fermions): \n > ')
+def main(use_pil):
+    n = 3  # int(input('Nombre de particules (n): \n > '))
+    energy = 6  # int(input('Énergie totale (E=x*e): \n > '))
+    particle_type = 3  # int(input('Type de particule (1=classique, 2=bosons, 3=fermions): \n > ')
     degeneration_input = "2=2"
     degeneration_input = degeneration_input.split(',')
 
@@ -21,23 +21,21 @@ def main():
         if tmp[0] != '':
             degeneration[int(tmp[0]) - 1] = int(tmp[1])
 
-    # TODO: check examples
     macro_states = compute_macro_states(n, energy, degeneration)
-
 
     '''
     Display stuff
     '''
-    print('Les états macroscopiques sont:')
+    print('Avec n={0} particules classiques et E={1}, les états macroscopiques possibles sont:'.format(n, energy))
     for i in range(len(macro_states)):
         print("\tÉtat {0}: {{".format(i), end='')
         for j in range(len(macro_states[i].coeff)):
-            print("n{0}={1}, ".format(j + 1, macro_states[i].coeff[j]), end='')
+            print("n{0}={1}, ".format(j+1, macro_states[i].coeff[j]), end='')
         print('...}')
 
     if particle_type == 1:  # Classic particle
         print("Nombre d'états microscopiques:")
-        counter = 1
+        counter = 0
         for state in macro_states:
             print("\t{0} pour l'état macro {1}".format(int(state.number_of_micro_states), counter))
             counter += 1
@@ -68,23 +66,45 @@ def main():
             print('et {0} ont tous une probabilité de {1}.'
                   .format(most_probable[-1][0] + 1,
                           most_probable[-1][1] / sum(state.number_of_micro_states for state in macro_states)))
+        if use_pil:
+            create_energy_diagram(n, energy, macro_states)
 
     elif particle_type == 2:  # Bosons
-        print("Avec n={0} bosons et E={1}, il y a {2} états macroscopiques équiprobables."
+        print("Dans le cas des bosons, avec n={0} particules et E={1}, il y a {2} état(s) macroscopique(s) équiprobable(s)."
               .format(n, energy, len(macro_states)))
+        if use_pil:
+            create_energy_diagram(n, energy, macro_states)
+
     elif particle_type == 3:  # Fermions
         # Get number of states with only one particle
         nb_states = 0
-        for state in macro_states:
+        correct_states = []
+        correct_macro_states = []
+        for i in range(len(macro_states)):
+            state = macro_states[i]
             keep = True
-            for e in state.coeff:
-                if e not in [0, 1]:
+            for e in range(len(state.coeff)):
+                if state.coeff[e] > degeneration[e]:
                     keep = False
+                elif state.coeff[e] == degeneration[e]:
+                    pass  # TODO: handle micro
             if keep:
+                correct_states.append(i)
+                correct_macro_states.append(macro_states[i])
                 nb_states += 1
 
-        print('Avec n={0} fermions et E={1}, il y a {2} états macroscopiques équiprobables.'
-              .format(n, energy, nb_states))
+        print('Dans le cas des fermions, avec n={0} particules et E={1}, il y a {2} état(s) macroscopique(s) équiprobable(s) : '
+              .format(n, energy, nb_states), end='')
+
+        if len(correct_states) > 1:
+            for i in range(len(correct_states)-1):
+                print('le {0}, '.format(correct_states[i]), end='')
+            print('et le {0}.'.format(correct_states[-1]))
+        else:
+            print('le {0}.'.format(correct_states[-1]))
+
+        if use_pil:
+            create_energy_diagram(n, energy, correct_macro_states)
 
 
 def compute_macro_states(n, energy, degeneration):
@@ -169,5 +189,34 @@ def compute_macro_states(n, energy, degeneration):
     return states
 
 
+def create_energy_diagram(n, energy, macro_states):
+    for i in range(len(macro_states)):
+        image = Image.new('RGB', (n * 100, energy * 100 + 10), (255, 255, 255))
+        draw = ImageDraw.Draw(image)
+        draw.line((0, image.size[1], image.size[0], image.size[1]), fill=128)
+        for x in range(1, energy + 1):
+            draw.line((0, image.size[1] - x * 100 + 5, image.size[0], image.size[1] - x * 100 + 5), fill=128,
+                      width=1)
+        e = macro_states[i]
+        for j in range(len(e.coeff)):
+            if e.coeff[j] != 0:
+                t = e.coeff[j]
+                j += 1
+                if t == 1:
+                    t = 2
+                else:
+                    t += 1
+                for x in range(1, t):
+                    draw.ellipse(
+                        ((image.size[0] / t) * x - 10, image.size[1] - j * 100 + 5 - 10, (image.size[0] / t) * x + 10,
+                         image.size[1] - j * 100 + 5 + 10), fill=(0, 0, 0))
+        image.save('img{0}.png'.format(i), 'PNG')
+
+
 if __name__ == '__main__':
-    main()
+    use_pil = True
+    try:
+        from PIL import Image, ImageDraw
+    except ImportError:
+        use_pil = False
+    main(use_pil)
