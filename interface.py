@@ -14,6 +14,8 @@ if __name__ == "__main__":
     label_nb_particule = Label(Mafenetre, text='Saisir le nombre de particule')
     label_nb_particule.grid(row='0', column='0')
 
+    pattern_area = re.compile("[0-9]*")
+
     entry_nb_particule = Entry(Mafenetre, textvariable='nb_particule')
     entry_nb_particule.grid(row='0', column='1')
 
@@ -33,6 +35,7 @@ if __name__ == "__main__":
 
     radioOne = tk.Radiobutton(Mafenetre, text='Classique', variable=type_part, value=1)
     radioOne.grid(row='3', columnspan='2')
+    radioOne.select()
     radioTwo = tk.Radiobutton(Mafenetre, text='Boson', variable=type_part, value=2)
     radioTwo.grid(row='4', columnspan='2')
     radioThree = tk.Radiobutton(Mafenetre, text='Fermion', variable=type_part, value=3)
