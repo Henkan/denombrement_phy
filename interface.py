@@ -1,3 +1,4 @@
+from functools import partial
 from tkinter import *
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
@@ -5,6 +6,14 @@ from io import StringIO
 import sys
 
 from main import compute_macro_states
+
+
+def valide_nb(self, entry=None):
+    if not pattern_area.match(entry.get()):
+        entry.config(fg='red')
+    else:
+        entry.config(fg='black')
+
 
 if __name__ == "__main__":
     Mafenetre = Tk()
@@ -14,22 +23,25 @@ if __name__ == "__main__":
     label_nb_particule = Label(Mafenetre, text='Saisir le nombre de particule')
     label_nb_particule.grid(row='0', column='0')
 
-    pattern_area = re.compile("[0-9]*")
+    pattern_area = re.compile("[0-9]+")
 
     entry_nb_particule = Entry(Mafenetre, textvariable='nb_particule')
     entry_nb_particule.grid(row='0', column='1')
+    entry_nb_particule.bind('<KeyRelease>', partial(valide_nb, entry=entry_nb_particule))
 
     label_energy = Label(Mafenetre, text="Niveau d'energie")
     label_energy.grid(row='1', column='0')
 
     entry_energy = Entry(Mafenetre, textvariable='nb_energy')
     entry_energy.grid(row='1', column='1')
+    entry_energy.bind('<KeyRelease>', partial(valide_nb, entry=entry_energy))
 
     label_niveau = Label(Mafenetre, text='Niveau de dégénérescence')
     label_niveau.grid(row='2', column='0')
 
     entry_degenerescence = Entry(Mafenetre, textvariable='nv_degenerescence')
     entry_degenerescence.grid(row='2', column='1')
+    entry_degenerescence.bind('<KeyRelease>', partial(valide_nb, entry=entry_degenerescence))
 
     type_part = tk.IntVar()
 
@@ -40,6 +52,7 @@ if __name__ == "__main__":
     radioTwo.grid(row='4', columnspan='2')
     radioThree = tk.Radiobutton(Mafenetre, text='Fermion', variable=type_part, value=3)
     radioThree.grid(row='5', columnspan='2')
+
 
 
     def run():
