@@ -5,6 +5,7 @@ from tkinter.scrolledtext import ScrolledText
 from io import StringIO
 import sys
 from PIL import Image, ImageDraw
+import math
 
 from main import compute_macro_states
 
@@ -117,7 +118,7 @@ if __name__ == "__main__":
 
         if particle_type == 1:  # Classic particle
             print("Nombre d'états microscopiques:")
-            counter = 1
+            counter = 0
             for state in macro_states:
                 print("\t{0} pour l'état macro {1}".format(int(state.number_of_micro_states), counter))
                 counter += 1
@@ -148,11 +149,23 @@ if __name__ == "__main__":
                 print('et {0} ont tous une probabilité de {1}.'
                       .format(most_probable[-1][0] + 1,
                               most_probable[-1][1] / sum(state.number_of_micro_states for state in macro_states)))
+
+            for i in range(len(macro_states)):
+                nb_etat_micro = math.factorial(n)
+                for j in range(len(macro_states[i].coeff)):
+                    nb_etat_micro *= (math.pow(degeneration[j], macro_states[i].coeff[j])/math.factorial(macro_states[i].coeff[j]))
+                print("Il y a {0} états microscopiques pour l'état macroscopique {1}.".format(int(nb_etat_micro), i))
+
             if create_diagram == 1:
                 create_energy_diagram(n, energy, macro_states)
         elif particle_type == 2:  # Bosons
             print("Avec n={0} bosons et E={1}, il y a {2} états macroscopiques équiprobables."
                   .format(n, energy, len(macro_states)))
+            for i in range(len(macro_states)):
+                nb_etat_micro = 1
+                for j in range(len(macro_states[i].coeff)):
+                    nb_etat_micro *= (math.factorial(macro_states[i].coeff[j] + degeneration[j] - 1)/(math.factorial(macro_states[i].coeff[j])*math.factorial(degeneration[j]-1)))
+                print("Il y a {0} états microscopiques pour l'état macroscopique {1}.".format(int(nb_etat_micro), i))
             if create_diagram:
                 create_energy_diagram(n, energy, macro_states)
         elif particle_type == 3:  # Fermions
@@ -167,22 +180,30 @@ if __name__ == "__main__":
                     if state.coeff[e] > degeneration[e]:
                         keep = False
                     elif state.coeff[e] == degeneration[e]:
-                        pass  # TODO: handle micro
+                        pass
                 if keep:
                     correct_states.append(i)
                     correct_macro_states.append(macro_states[i])
                     nb_states += 1
 
-            print(
-                'Dans le cas des fermions, avec n={0} particules et E={1}, il y a {2} état(s) macroscopique(s) équiprobable(s) : '
-                .format(n, energy, nb_states), end='')
+            if len(correct_states) > 0:
+                print(
+                    'Dans le cas des fermions, avec n={0} particules et E={1}, il y a {2} état(s) macroscopique(s) équiprobable(s) : '
+                        .format(n, energy, nb_states), end='')
+                if len(correct_states) > 1:
+                    for i in range(len(correct_states) - 1):
+                        print('le {0}, '.format(correct_states[i]), end='')
+                    print('et le {0}.'.format(correct_states[-1]))
+                else:
+                    print('le {0}.'.format(correct_states[-1]))
+                for i in correct_states:
+                    nb_etat_micro = 1
+                    for j in range(len(macro_states[i].coeff)):
+                        nb_etat_micro *= (math.factorial(degeneration[j])/(math.factorial(macro_states[i].coeff[j])*math.factorial(degeneration[j]-macro_states[i].coeff[j])))
+                    print("Il y a {0} état(s) microscopique(s) pour l'état macroscopique {1}.".format(int(nb_etat_micro), i))
 
-            if len(correct_states) > 1:
-                for i in range(len(correct_states) - 1):
-                    print('le {0}, '.format(correct_states[i]), end='')
-                print('et le {0}.'.format(correct_states[-1]))
             else:
-                print('le {0}.'.format(correct_states[-1]))
+                print("Dans le cas des fermions, aucun état macroscopique n'est possible.")
 
             if create_diagram == 1:
                 create_energy_diagram(n, energy, correct_macro_states)
