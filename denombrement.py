@@ -139,7 +139,9 @@ if __name__ == "__main__":
 
             print("Avec n={0} particules classiques et E={1}, ".format(n, energy), end='')
 
-            if len(most_probable) == 1:
+            if len(most_probable) == 0:
+                print("aucun état n'est plus probable.")
+            elif len(most_probable) == 1:
                 print("l'état macroscopique le plus probable est le {0}."
                       .format(most_probable[-1][0]))
             else:
